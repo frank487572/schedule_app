@@ -28,7 +28,7 @@ exports.register = async (req, res) => {
         user = await User.create(username, passwordHash);
 
         // 生成 JWT token
-        const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });
 
         res.status(201).json({ message: 'User registered successfully.', token, userId: user.id, username: user.username });
     } catch (error) {
@@ -59,7 +59,7 @@ exports.login = async (req, res) => {
         }
 
         // 生成 JWT token
-        const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });
 
         res.status(200).json({ message: 'Logged in successfully.', token, userId: user.id, username: user.username });
     } catch (error) {
