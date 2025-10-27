@@ -1,10 +1,9 @@
+require('dotenv').config({ path: '../.env' });
 const express = require('express');
 const bodyParser = require('body-parser');
 const authRoutes = require('./routes/authRoutes');
 const activityRoutes = require('./routes/activityRoutes'); // 引入活动路由
 const customOptionRoutes = require('./routes/customOptionRoutes'); // 引入自定义选项路由
-
-require('dotenv').config({ path: '../.env' });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
