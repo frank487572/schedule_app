@@ -9,6 +9,11 @@ router.use(authMiddleware);
 // 创建活动 (开始打卡)
 router.post('/', activityController.createActivity);
 
+// 新增：搜索活动路由
+// 注意：将 /search 放在 /:activityId 这种动态路由之前，避免 /search 被误认为是 activityId
+router.get('/search', activityController.searchActivities);
+
+
 // 结束活动并记录详情 (使用 PUT 更新特定活动的详情)
 router.put('/:activityId/end', activityController.endActivityAndAddDetails);
 
@@ -32,5 +37,6 @@ router.get('/fixed', activityController.getFixedSchedules);
 
 // 删除活动
 router.delete('/:activityId', activityController.deleteActivity);
+
 
 module.exports = router;

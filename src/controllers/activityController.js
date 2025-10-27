@@ -59,12 +59,10 @@ exports.endActivityAndAddDetails = async (req, res) => {
 exports.getUserActivities = async (req, res) => {
     try {
         const userId = req.user; // authMiddleware 应该已经设置了 req.user
-        // 从查询参数获取 limit 和 offset，并确保它们是数字
-        const limit = parseInt(req.query.limit || '10');
-        const offset = parseInt(req.query.offset || '0');
-        // **关键的检查：添加日志和 NaN 检查**
-        console.log('DEBUG: getUserActivities received - userId:', userId, 'limit:', limit, 'offset:', offset);
-        if (isNaN(limit) || isNaN(offset)) {
+        const limit = parseInt(req.query.limit || '10', 10); // 明确基数
+        const offset = parseInt(req.query.offset || '0', 10); // 明确基数
+
+        if (isNaN(limit) || isNaN(offset) || limit < 0 || offset < 0) {
             console.error('ERROR: Invalid limit or offset parameter. limit:', req.query.limit, 'offset:', req.query.offset);
             return res.status(400).json({ message: 'Invalid limit or offset parameter.' });
         }
@@ -183,5 +181,53 @@ exports.deleteActivity = async (req, res) => {
     } catch (error) {
         console.error('Delete activity error:', error);
         res.status(500).json({ message: 'Server error during activity deletion.' });
+    }
+};
+
+// 新增：搜索活动
+exports.searchActivities = async (req, res) => {
+    const userId = req.user;
+    // 提取所有可能的查询参数
+    const {
+        year, month, day, hour,
+        title, description, startLocation, endLocation, relatedPeople, personalFeeling,
+        limit, offset
+    } = req.query;
+
+    const searchParams = {
+        // 将数字参数转换为整型，如果转换失败则为 undefined
+        year: year ? parseInt(year, 10) : undefined,
+        month: month ? parseInt(month, 10) : undefined,
+        day: day ? parseInt(day, 10) : undefined,
+        hour: hour ? parseInt(hour, 10) : undefined, // hour 可以是 0，不能用 !hour 判断
+        title,
+        description,
+        startLocation,
+        endLocation,
+        relatedPeople,
+        personalFeeling,
+        limit: limit ? parseInt(limit, 10) : undefined,
+        offset: offset ? parseInt(offset, 10) : undefined,
+    };
+
+    // 清理掉 undefined 的参数，只传递有效参数给模型层
+    Object.keys(searchParams).forEach(key => {
+        if (searchParams[key] === undefined || searchParams[key] === null || searchParams[key] === '') {
+            delete searchParams[key];
+        }
+    });
+
+    // 特别处理 hour，如果传入的是 '0' 那么 parseInt 结果是 0，我们应该保留
+    if (req.query.hour === '0') {
+        searchParams.hour = 0;
+    }
+
+
+    try {
+        const activities = await Activity.searchActivities(userId, searchParams);
+        res.status(200).json(activities);
+    } catch (error) {
+        console.error('Search activities error:', error);
+        res.status(500).json({ message: 'Server error while searching activities.' });
     }
 };
